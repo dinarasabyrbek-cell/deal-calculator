@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deal Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f0f4f8;
+    color: #1e293b;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 36px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  }
+
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+    color: #0f172a;
+  }
+
+  .field { margin-bottom: 20px; }
+
+  label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="number"]:focus { border-color: #6366f1; }
+
+  /* Slider */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    background: linear-gradient(to right, #6366f1 var(--pct, 0%), #e2e8f0 var(--pct, 0%));
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #6366f1;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 2px #6366f1;
+    cursor: pointer;
+  }
+
+  .slider-val {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0f172a;
+    min-width: 42px;
+    text-align: right;
+  }
+
+  /* Gauge */
+  .gauge-wrap { margin-bottom: 24px; }
+
+  .gauge-bar {
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #22c55e 0%, #eab308 45%, #ef4444 100%);
+    position: relative;
+    margin-bottom: 6px;
+  }
+
+  .gauge-needle {
+    position: absolute;
+    top: -4px;
+    width: 4px;
+    height: 18px;
+    background: #1e293b;
+    border-radius: 2px;
+    transform: translateX(-50%);
+    transition: left 0.25s ease;
+    box-shadow: 0 0 6px rgba(0,0,0,0.2);
+  }
+
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #94a3b8;
+  }
+
+  .gauge-status {
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-top: 4px;
+    transition: color 0.25s;
+  }
+
+  /* Results */
+  .divider {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 24px 0;
+  }
+
+  .results { display: flex; flex-direction: column; gap: 14px; }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .result-label {
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+
+  .result-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+
+  .result-value.highlight { color: #6366f1; }
+  .result-value.negative { color: #ef4444; }
+  .result-value.positive { color: #16a34a; }
+
+  .cost-note {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 2px;
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Deal Calculator</h1>
+
+  <div class="field">
+    <label>Deal Size ($)</label>
+    <input type="number" id="dealSize" value="100000" min="0" step="1000">
+  </div>
+
+  <div class="field">
+    <label>Discount — <span id="discLabel">0%</span></label>
+    <div class="slider-row">
+      <input type="range" id="discount" min="0" max="50" value="0" step="0.5">
+      <span class="slider-val" id="discVal">0%</span>
+    </div>
+  </div>
+
+  <div class="gauge-wrap">
+    <div class="gauge-bar">
+      <div class="gauge-needle" id="needle"></div>
+    </div>
+    <div class="gauge-labels">
+      <span>Standard</span>
+      <span>Aggressive</span>
+      <span>Painful</span>
+    </div>
+    <div class="gauge-status" id="gaugeStatus">— Enter a discount</div>
+  </div>
+
+  <div class="field">
+    <label>My Commission Rate (%)</label>
+    <input type="number" id="commRate" value="8" min="0" max="100" step="0.5">
+  </div>
+
+  <hr class="divider">
+
+  <div class="results">
+    <div>
+      <div class="result-row">
+        <span class="result-label">Price after discount</span>
+        <span class="result-value highlight" id="netPrice">$100,000</span>
+      </div>
+    </div>
+    <div>
+      <div class="result-row">
+        <span class="result-label">My commission</span>
+        <span class="result-value positive" id="myComm">$8,000</span>
+      </div>
+    </div>
+    <div>
+      <div class="result-row">
+        <span class="result-label">Discount costs me</span>
+        <span class="result-value negative" id="commLost">$0</span>
+      </div>
+      <div class="cost-note" id="commLostNote">vs. full-price commission</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const dealEl   = document.getElementById('dealSize');
+  const discEl   = document.getElementById('discount');
+  const discLabel = document.getElementById('discLabel');
+  const discVal  = document.getElementById('discVal');
+  const commEl   = document.getElementById('commRate');
+  const needle   = document.getElementById('needle');
+  const gaugeStatus = document.getElementById('gaugeStatus');
+  const netPriceEl  = document.getElementById('netPrice');
+  const myCommEl    = document.getElementById('myComm');
+  const commLostEl  = document.getElementById('commLost');
+  const commLostNote = document.getElementById('commLostNote');
+
+  function fmt(n) {
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+
+  function gaugeColor(pct) {
+    // pct: 0–1 across the bar
+    if (pct < 0.35) return '#22c55e';
+    if (pct < 0.65) return '#eab308';
+    return '#ef4444';
+  }
+
+  function gaugeLabel(pct) {
+    if (pct < 0.25) return { text: 'Standard — no concern', color: '#22c55e' };
+    if (pct < 0.50) return { text: 'Moderate — worth a note', color: '#86efac' };
+    if (pct < 0.72) return { text: 'Aggressive — needs approval', color: '#eab308' };
+    return { text: 'Painful — protect your number', color: '#ef4444' };
+  }
+
+  function calc() {
+    const deal = parseFloat(dealEl.value) || 0;
+    const disc = parseFloat(discEl.value) || 0;
+    const rate = parseFloat(commEl.value) || 0;
+
+    const net        = deal * (1 - disc / 100);
+    const fullComm   = deal * (rate / 100);
+    const myComm     = net  * (rate / 100);
+    const commLost   = fullComm - myComm;
+
+    // Slider gradient fill
+    const sliderPct = disc / 50;
+    discEl.style.setProperty('--pct', (sliderPct * 100) + '%');
+    discLabel.textContent = disc + '%';
+    discVal.textContent   = disc + '%';
+
+    // Needle: disc goes 0–50%, map to 0–100% of bar
+    needle.style.left = (sliderPct * 100) + '%';
+
+    const label = gaugeLabel(sliderPct);
+    gaugeStatus.textContent = label.text;
+    gaugeStatus.style.color = label.color;
+
+    netPriceEl.textContent = fmt(net);
+    myCommEl.textContent   = fmt(myComm);
+    commLostEl.textContent = '-' + fmt(commLost);
+
+    commLostNote.textContent =
+      `Full-price commission would be ${fmt(fullComm)}`;
+  }
+
+  discEl.addEventListener('input', calc);
+  dealEl.addEventListener('input', calc);
+  commEl.addEventListener('input', calc);
+
+  calc();
+</script>
+</body>
+</html>
